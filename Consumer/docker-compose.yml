@@ -1,0 +1,44 @@
+#version: '3'
+#
+#services:
+#
+#  tomcat-db-api:
+#    image: your_image_name
+#    ports:
+#       - "8080:8080"
+#
+
+
+
+version: '3.1'
+services:
+  API:
+    image: 'blog-api-docker.jar'
+    ports:
+      - "8080:8080"
+    depends_on:
+      PostgreSQL:
+        condition: service_healthy
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://PostgreSQL:5432/energy-platform
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=rooot123
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+
+  PostgreSQL:
+    image: postgres
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_PASSWORD=rooot123
+      - POSTGRES_USER=postgres
+      - POSTGRES_DB=energy-platform
+    container_name: PostgreSQL
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - './sql/0_init.sql:/docker-entrypoint-initdb.d/0_init.sql'
+      - './sql/1_data.sql:/var/lib/postgresql/sql/1_data.sql'
